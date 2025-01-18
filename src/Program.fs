@@ -61,12 +61,14 @@ type SymTable =
 
 type IWord = 
     {Dat: uint32}
-        static member JmpCode = uint32 0xC000
-        static member ExtCode = uint32 0xD000
-        static member AluOpcField n = uint32 (n <<< 12)
-        static member JmpOpcField n = uint32 (n <<< 9)
+        static member JmpCode = uint32 0xC000 // 表示跳转指令的基础操作码
+        static member ExtCode = uint32 0xD000 // 扩展指令的基础操作码
+        static member AluOpcField n = uint32 (n <<< 12) // 表示 ALU 操作码字段的编码, 目的存疑
+        static member JmpOpcField n = uint32 (n <<< 9) // 表示跳转操作码字段的编码。
         static member JmpInvBit b = uint32 <| if b then (1 <<< 8) else 0
+        // 如果 b 为 true，生成一个设置了第 8 位的值；否则生成 0。用于表示跳转指令的反转条件。
         static member Imm8Bit b = uint32 <| if b then (1 <<< 8) else 0
+        // 类似于 JmpInvBit，表示立即数的第 8 位标志。
         static member RaField n = uint32 (n <<< 9)
         static member RbField n = uint32 (n <<< 5)
         static member RcField n = uint32 (n <<< 2)
