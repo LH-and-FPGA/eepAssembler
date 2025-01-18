@@ -2,9 +2,29 @@
 open System
 open EEExtensions
 
+// 模块声明：声明一个 F# 模块，命名为 program。
+// 打开命名空间：引用 .NET 的 System 命名空间和自定义扩展库 EEExtensions。
+
 type Register = Regist of int | Flags | PCX
 
+// 定义寄存器类型，可以是整数寄存器 Regist，或特殊寄存器 Flags 和 PCX。
+
+// 定义带参数的 判别联合（Discriminated Union, DU） 类型时，
+// of 用于指定构造函数的参数类型。
+
+
 type Phase = | Phase1 | Phase2
+// 类型定义，用于定义一个判别联合类型（Discriminated Union）
+// type Phase = | Phase1 | Phase2
+
+// 在 F# 中，type Register = Regist of int | Flags | PCX 是一个判别联合类型
+// 判别联合类型是一种强大的工具，用于定义一组具有多个可能值的类型。
+// 这种定义允许你对数据进行模式匹配，并根据值的不同种类执行不同的操作。
+
+// 使用方法
+// let r1 = Regist 5   // 表示编号为 5 的寄存器
+// let flagRegister = Flags   // 表示标志寄存器
+// let pcRegister = PCX       // 表示程序计数器寄存器
 
 let version = "2.3"
 
@@ -16,30 +36,31 @@ type Op =
     | OffsetOp of Register * int
     | SymImm8 of string
 
-type SymTable = 
-    { Table: Map<string,int>; Phase : Phase}
+// * 在类型定义中不是运算符，而是表示元组中元素的分隔符，也就是(Register, int) 的简写。
 
-        member this.Lookup name =
-            match this.Phase, Map.tryFind name this.Table with
-            | _, Some n -> 
+type SymTable = 
+    { Table: Map<string,int>; Phase : Phase} // 符号表，用不可变的 Map 存储符号名和对应的整数值; 当前符号表的阶段，类型为 Phase
+
+        member this.Lookup name = // 定义符号表的查找方法，接受符号名作为参数
+            match this.Phase, Map.tryFind name this.Table with // 模式匹配当前阶段和符号表查找结果
+            | _, Some n -> // 如果符号存在（Some n），忽略当前阶段
                 Ok n
             | Phase1, None -> 
                 Ok 0
             | Phase2, None   -> 
                 Error $"Can't find symbol '{name}' in symbol table"
 
-        member this.AddSymbol name value =
-            if Map.containsKey name this.Table then
+        member this.AddSymbol name value = // 定义符号表的添加方法，接受符号名和值作为参数
+            if Map.containsKey name this.Table then // 如果符号表中已经存在该符号名
                 Error $"Duplicate definition of symbol '{name}'"
             else
                 Ok {this with Table = Map.add name value this.Table }
 
         static member Initial = {Table = Map.empty; Phase = Phase1}
-    
+
 
 type IWord = 
-    {
-        Dat: uint32}
+    {Dat: uint32}
         static member JmpCode = uint32 0xC000
         static member ExtCode = uint32 0xD000
         static member AluOpcField n = uint32 (n <<< 12)
